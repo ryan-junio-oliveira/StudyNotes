@@ -24,7 +24,7 @@
 - [Comandos Essenciais do Windows](./learning-windows/README.md)
 
 ### [🔀 Git](./learning-git/)
-- [Git Guide](./learning-git/README.md)
+- [Git — Do Zero ao Avançado (14 capítulos + portfolio lab)](./learning-git/README.md)
 
 ---
 
