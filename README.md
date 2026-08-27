@@ -7,8 +7,7 @@
 ## 📖 Topics
 
 ### [🐘 Laravel](./learning-laravel/)
-- [Eloquent ORM](./learning-laravel/eloquent.md)
-- [Migrations](./learning-laravel/migrations.md)
+- [Laravel — Do Zero ao Eloquent Avançado (13 capítulos + projeto Blog)](./learning-laravel/README.md)
 
 ### [🐳 Docker](./learning-docker/)
 - [Docker Manual](./learning-docker/README.md)
@@ -17,14 +16,14 @@
 - [Setup Script](./learning-docker/setup.sh)
 
 ### [🗄️ SQL](./learning-sql/)
-- [SQL do Básico ao Avançado](./learning-sql/README.md) — 25 capítulos + projeto Catálogo de Filmes
+- [SQL — Do Básico ao Avançado (21 capítulos + projeto Catálogo de Filmes)](./learning-sql/README.md)
 - [Projeto Executável — `projeto-catalogo-filmes.sql`](./learning-sql/projeto-catalogo-filmes.sql)
 
 ### [🪟 Windows Commands](./learning-windows/)
 - [Comandos Essenciais do Windows](./learning-windows/README.md)
 
 ### [🔀 Git](./learning-git/)
-- [Git — Do Zero ao Avançado (14 capítulos + portfolio lab)](./learning-git/README.md)
+- [Git — Do Zero ao Avançado (18 capítulos + portfolio lab)](./learning-git/README.md)
 
 ---
 
