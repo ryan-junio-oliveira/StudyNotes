@@ -1,34 +1,52 @@
-# 09. Mass Assignment — Segurança
+# 09. Mass Assignment — Segurança (dissecado)
 
 > Parte do [Curso Completo de Laravel](./README.md)
 
-## 9.1 Por que `$fillable` existe?
+## 9.1 Por que `$fillable` existe? (analogia porteiro)
+
+> **Mass assignment = `Post::create($request->all())` com tudo que veio do form.** Sem trava, usuário injeta `is_admin=1` e vira admin.
 
 ```php
-// ❌ sem fillable: usuário injeta is_admin=1
-Post::create($request->all()); // se $request tiver is_admin, cria admin!
+// Attacker envia: titulo=Olá&is_admin=1
+Post::create($request->all());
+// Se is_admin for fillable, cria admin! ❌
+```
 
-// ✅ com fillable: só campos listados entram
+**`$fillable` = lista branca (porteiro só deixa entrar quem está na lista).**
+
+```php
 class Post extends Model {
-    protected $fillable = ['titulo','conteudo','category_id'];
-    // ou
-    protected $guarded = ['id','is_admin']; // tudo menos estes
-    // ou
-    protected $guarded = ['*']; // bloqueia tudo (use forceFill)
+    protected $fillable = ['titulo','conteudo','category_id']; // ✅ só estes
+    // Alternativas:
+    // protected $guarded = ['id','is_admin']; // lista negra: tudo menos estes
+    // protected $guarded = ['*']; // bloqueia tudo (use forceFill para admin)
 }
 ```
 
-|  | `fillable` | `guarded` |
-|--|------------|-----------|
-| Filosofia | Lista branca | Lista negra |
-| Seguro | Mais | Menos (esquece um) |
+|  | `$fillable` (branca) | `$guarded` (negra) | `$guarded = ['*']` |
+|--|-------|-------|-----|
+| Filosofia | Só entra o listado | Entra tudo exceto listado | Nada entra |
+| Segurança | Mais (esqueceu campo → só não cria, não vaza) | Menos (esqueceu `is_admin` → vaza) | Máxima |
+| Quando usar | Padrão | Tabela com muitos campos liberados | Model sensível (`User`) |
 
-**Erro:**
+**Exemplos:**
+
+```php
+Post::create(['titulo' => 'Olá', 'conteudo' => '...', 'is_admin' => 1]);
+// com fillable ['titulo','conteudo'] → is_admin é ignorado ✅
+
+$post->fill(['titulo' => 'Novo', 'is_admin' => 1]); // fill também respeita fillable
+$post->forceFill(['is_admin' => 1])->save(); // bypass fillable (admin interno)
+```
+
+**Erro clássico:**
 
 ```
-Illuminate\Database\Eloquent\MassAssignmentException: Add [titulo] to fillable
-→ adicione ao $fillable
+Illuminate\Database\Eloquent\MassAssignmentException: Add [titulo] to fillable property to allow mass assignment on [App\Models\Post].
+→ Solução: protected $fillable = ['titulo', ...]
 ```
+
+> **Regra:** nunca `Post::create($request->all())` sem validar + `fillable`. Valide com `FormRequest` antes.
 
 ---
 

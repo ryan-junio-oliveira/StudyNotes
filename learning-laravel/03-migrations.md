@@ -1,72 +1,99 @@
-# 03. Migrations — DDL Versionado (dissecado)
+# 03. Migrations — DDL Versionado (dissecado linha a linha)
 
 > Parte do [Curso Completo de Laravel](./README.md)
+> **Migration = `CREATE TABLE` em PHP, versionado no Git.** `php artisan migrate` aplica, `migrate:rollback` desfaz.
 
-## 3.1 O que são Migrations?
+## 3.1 Anatomia de uma migration (SQL vs Blueprint)
 
-> **Migration = `CREATE TABLE` em PHP, versionado no Git.** `php artisan migrate` aplica, `rollback` desfaz.
+**SQL puro (o que o banco executa):**
+
+```sql
+CREATE TABLE posts (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, titulo VARCHAR(150) NOT NULL);
+```
+
+**Blueprint (o que você escreve):** mesmo significado, em PHP legível e portável:
 
 ```php
 // database/migrations/2024_01_01_000001_create_posts_table.php
 return new class extends Migration {
-    public function up(): void { /* cria */ }
-    public function down(): void { /* desfaz */ }
+    public function up(): void {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();                      // ← BIGINT PK
+            $table->string('titulo', 150);     // ← VARCHAR(150)
+        });
+    }
+    public function down(): void {
+        Schema::dropIfExists('posts');         // ← desfaz (rollback)
+    }
 };
 ```
 
-**Por que não SQL puro?** Time todo roda `migrate`, histórico no Git, `migrate:fresh --seed` recria do zero.
+| Parte | O que significa | Se omitir/errar |
+|-------|-----------------|-----------------|
+| `new class extends Migration` | Classe anônima (Laravel 8+) | Classe nomeada também funciona |
+| `up()` | O que faz ao `migrate` | Vazio → nada cria |
+| `down()` | O que faz ao `rollback` | Vazio → `rollback` não apaga |
+| `Schema::create('posts', fn)` | Cria tabela `posts` | Nome errado → `Post` model não encontra (`protected $table`) |
+
+> **Por que não SQL puro?** Time todo roda `migrate`, histórico no Git, `migrate:fresh --seed` recria do zero em qualquer env.
 
 ## 3.2 Criando migrations (sintaxe dissecada)
 
 ```bash
-php artisan make:migration create_posts_table              # cria vazio
-php artisan make:migration create_posts_table --create=posts # já vem com Schema::create
-php artisan make:migration add_slug_to_posts_table --table=posts # alteração
-php artisan make:migration add_slug_to_posts_table --table=posts
+php artisan make:migration create_posts_table              # vazio (você escreve Schema::create)
+php artisan make:migration create_posts_table --create=posts # já vem com Schema::create('posts')
+php artisan make:migration add_slug_to_posts_table --table=posts # já vem com Schema::table('posts')
 ```
 
-| Comando | Gera |
-|---------|------|
-| `make:migration create_X` | `Schema::create('X')` |
-| `make:migration add_Y_to_Z --table=Z` | `Schema::table('Z')` com `up`/`down` |
+| Comando | Gera | Quando usar |
+|---------|------|-------------|
+| `make:migration create_X` | `Schema::create('X')` | Nova tabela |
+| `make:migration add_Y_to_Z --table=Z` | `Schema::table('Z')` com `up`/`down` | Adicionar coluna em tabela existente |
+| `make:migration create_X --create=X` | Igual, já com esqueleto | Atalho para tabela nova |
 
-## 3.3 `Schema::create` dissecado (projeto Blog)
+**Ordem de criação importa:** `2024_01_01_000001_users`, `000002_posts` — `posts` com `user_id FK` precisa de `users` já criado.
+
+## 3.3 `Schema::create('posts')` dissecado (Blog)
 
 ```php
 Schema::create('posts', function (Blueprint $table) {
-    $table->id(); // 1. PK BIGINT UNSIGNED AUTO_INCREMENT (alias para bigIncrements)
-    $table->string('titulo', 150); // 2. VARCHAR(150) NOT NULL
-    $table->string('slug')->unique(); // 3. UNIQUE (para URL /posts/meu-post)
-    $table->text('conteudo'); // 4. TEXT
-    $table->foreignId('user_id')->constrained()->onDelete('cascade'); // 5. FK → users.id
-    $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete(); // 6. FK opcional
-    $table->boolean('ativo')->default(true); // 7. DEFAULT true
-    $table->timestamp('publicado_em')->nullable(); // 8. nullable
-    $table->timestamps(); // 9. created_at + updated_at (gerenciado pelo Eloquent)
-    $table->softDeletes(); // 10. deleted_at (cap. 11)
+    $table->id(); // 1. PK BIGINT UNSIGNED AUTO_INCREMENT (alias bigIncrements) — PK do cap. 02
+    $table->string('titulo', 150); // 2. VARCHAR(150) NOT NULL — título obrigatório
+    $table->string('slug')->unique(); // 3. VARCHAR(255) UNIQUE — URL /posts/meu-post
+    $table->text('conteudo'); // 4. TEXT — longo, sem limite
+    $table->foreignId('user_id')->constrained()->onDelete('cascade'); // 5. FK → users.id + CASCADE
+    $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete(); // 6. FK opcional → null ao apagar category
+    $table->boolean('ativo')->default(true); // 7. TINYINT DEFAULT 1 — rascunho vs publicado
+    $table->timestamp('publicado_em')->nullable(); // 8. TIMESTAMP NULL — quando publicou
+    $table->timestamps(); // 9. created_at + updated_at (gerenciado pelo Eloquent, ver cap. 05)
+    $table->softDeletes(); // 10. deleted_at (cap. 10) — exclusão lógica
 });
 ```
 
-| Linha | O que faz | Se errar |
-|-------|-----------|----------|
-| `$table->id()` | PK `bigIncrements` | Sem PK → Eloquent exige `protected $primaryKey` |
-| `->unique()` | Trava `UNIQUE` | `Duplicate entry 'meu-post'` ao repetir slug |
-| `foreignId()->constrained()` | `BIGINT UNSIGNED` + `FOREIGN KEY REFERENCES users(id)` | `Cannot add foreign key` se `users` não existe ainda (ordem importa!) |
-| `->onDelete('cascade')` | Se apaga user, apaga posts | `restrict` bloqueia delete de user com posts |
-| `->nullable()` | Aceita `NULL` | Sem ele, `Field doesn't have a default value` |
-| `$table->timestamps()` | Cria `created_at`, `updated_at` | Eloquent espera, senão `public $timestamps = false` |
-| `$table->softDeletes()` | `deleted_at` para exclusão lógica | Sem ele, `SoftDeletes` falha |
+| Linha | Equivalência SQL | O que faz | Se errar |
+|-------|-----------------|-----------|----------|
+| `$table->id()` | `id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` | PK do Blog (cap. 02) | Sem PK → Eloquent exige `protected $primaryKey = 'codigo'` |
+| `->unique()` | `UNIQUE KEY` | `slug` não repete | `Duplicate entry 'meu-post'` ao repetir |
+| `foreignId()->constrained()` | `user_id BIGINT UNSIGNED, FOREIGN KEY REFERENCES users(id)` | FK → `users.id` | `Cannot add foreign key` se `users` não existe ainda |
+| `->onDelete('cascade')` | `ON DELETE CASCADE` | Se apaga `user`, apaga `posts` dele | `restrict` bloqueia delete de user com posts |
+| `->nullable()` | `DEFAULT NULL` | Aceita `NULL` | Sem ele, `Field 'category_id' doesn't have a default value` ao omitir |
+| `$table->timestamps()` | `created_at TIMESTAMP, updated_at TIMESTAMP` | Eloquent preenche auto | Sem ele, `public $timestamps = false` no Model |
+| `$table->softDeletes()` | `deleted_at TIMESTAMP NULL` | `SoftDeletes` (cap. 10) | Sem ele, `delete()` apaga de verdade |
 
-**Ordem importa:** `users` e `categories` antes de `posts` (FK precisa do pai).
+**Visual com dados (cap. 02):**
 
-## 3.4 Todos os tipos (referência)
+```
+users (PK id=1) ◄── foreignId('user_id')->constrained() ── posts (FK user_id=1)
+```
+
+## 3.4 Todos os tipos (referência rápida)
 
 ```php
 Schema::create('exemplo', function (Blueprint $table) {
     $table->id(); $table->uuid('uuid')->primary();
     $table->tinyInteger('tiny'); $table->smallInteger('small'); $table->integer('normal');
-    $table->bigInteger('big'); $table->decimal('preco', 8, 2);
-    $table->boolean('ativo')->default(true);
+    $table->bigInteger('big'); $table->decimal('preco', 8, 2); // 8 dígitos, 2 decimais
+    $table->boolean('ativo')->default(true); // TINYINT(1)
     $table->char('letra', 1); $table->string('nome', 100);
     $table->text('descricao'); $table->mediumText('m'); $table->longText('l');
     $table->date('nasc'); $table->datetime('inicio'); $table->timestamp('criado')->nullable();
@@ -75,41 +102,56 @@ Schema::create('exemplo', function (Blueprint $table) {
 });
 ```
 
-## 3.5 Índices e FKs avançados
+> **Dica:** `string` com limite (`100`) vs `text` sem limite — como em SQL (`04-tipos-constraints.md:7`).
+
+## 3.5 Índices e FKs avançados (quando `constrained()` não basta)
 
 ```php
-$table->string('email')->unique();
-$table->index('titulo');
-$table->index(['category_id', 'created_at']); // composto
-$table->fullText('conteudo'); // MySQL 5.7+
+$table->string('email')->unique(); // índice único
+$table->index('titulo'); // índice simples
+$table->index(['category_id', 'created_at']); // composto (ordem importa)
+$table->fullText('conteudo'); // busca textual MySQL 5.7+
 
-// FK explícita (quando nome não segue convenção)
+// FK explícita (nome fora da convenção user_id → users.id)
 $table->unsignedBigInteger('perfil_id');
 $table->foreign('perfil_id')->references('id')->on('perfis')->onDelete('restrict');
 ```
 
-## 3.6 `Schema::table` — alterar sem apagar dados
+| `constrained()` | `foreign()->references()->on()` |
+|-----------------|-------------------------------|
+| Convenção `user_id → users.id` | Nome custom `perfil_id → perfis.id` |
+
+## 3.6 `Schema::table` — alterar sem apagar dados (evolução)
 
 ```php
 Schema::table('posts', function (Blueprint $table) {
-    $table->string('resumo', 255)->nullable()->after('titulo');
-    $table->dropColumn('conteudo_antigo');
+    $table->string('resumo', 255)->nullable()->after('titulo'); // adiciona depois de titulo
+    $table->dropColumn('conteudo_antigo'); // remove
     // $table->renameColumn('titulo', 'titulo_completo'); // requer doctrine/dbal
 });
 ```
 
-## 3.7 Comandos Artisan (tabela)
+> **Migrations são incrementais:** cada `make:migration` é um commit do banco. Nunca edite uma já rodada em produção — crie nova `add_...`.
 
-| Comando | O que faz | Quando |
-|---------|-----------|--------|
-| `migrate` | Aplica pendentes | Deploy |
-| `migrate:rollback` | Desfaz último batch | Errou migration |
-| `migrate:reset` | Desfaz todas | Raro |
-| `migrate:fresh --seed` | Apaga tudo + recria + seed | Dev (perde dados!) |
-| `migrate:status` | Lista aplicadas | Debug |
-| `migrate:fresh --seed` | + seeders (cap. 04) | Reset com dados fake |
+## 3.7 Comandos Artisan (tabela + erros)
 
-> **Regra:** nunca edite migration já rodada em produção — crie nova `add_...`.
+| Comando | O que faz | Quando | Risco |
+|---------|-----------|--------|-------|
+| `migrate` | Aplica pendentes | Deploy | Seguro |
+| `migrate:rollback` | Desfaz último batch (grupo) | Errou migration | Desfaz só último lote |
+| `migrate:reset` | Desfaz todas | Raro | Perde tudo |
+| `migrate:fresh --seed` | **Apaga tudo** + recria + seed | Dev | **Perde dados!** |
+| `migrate:status` | Lista `Ran`/`Pending` | Debug | — |
+| `migrate --pretend` | Mostra SQL sem executar | Preview | — |
+
+**Erros comuns:**
+
+| Mensagem | Causa | Solução |
+|----------|-------|---------|
+| `Cannot add foreign key constraint` | FK antes do pai (`posts` antes de `users`) | Renomeie timestamp da migration ou use `Schema::table` depois |
+| `Duplicate column name 'slug'` | `add_slug` já existe | `Schema::hasColumn('posts','slug')` ou `migrate:rollback` |
+| `Nothing to migrate` | Sem migrations pendentes | `migrate:status` para conferir |
+| `Class PostSeeder not found` | `composer dump-autoload` | `composer dump-autoload` |
 
 ---
 

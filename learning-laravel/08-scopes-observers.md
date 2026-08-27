@@ -1,41 +1,89 @@
-# 08. Scopes e Observers
+# 08. Scopes e Observers (dissecado)
 
 > Parte do [Curso Completo de Laravel](./README.md)
 
-## 8.1 Query Scopes (filtros reutilizáveis)
+## 8.1 Query Scopes — filtros reutilizáveis (dissecado)
+
+> **Scope = método `scopeX` no Model que vira `->x()` na query.** Evita repetir `where('ativo',1)` em todo lugar.
 
 ```php
-// Post.php
-public function scopeAtivos($query) { return $query->where('ativo', true); }
-public function scopePublicados($query) { return $query->whereNotNull('publicado_em'); }
-
-// Uso:
-Post::ativos()->publicados()->get();
-Post::ativos()->where('user_id', 1)->get();
+// Post.php — definição
+public function scopeAtivos(Builder $query): Builder {
+    return $query->where('ativo', true); // 1. scope + nome + $query
+}
+public function scopePublicados(Builder $query): Builder {
+    return $query->whereNotNull('publicado_em');
+}
+public function scopeDoAutor(Builder $query, int $userId): Builder {
+    return $query->where('user_id', $userId); // 2. Com parâmetro
+}
 ```
 
-## 8.2 Observers e Eventos
+| Parte | O que significa | Se errar |
+|-------|-----------------|----------|
+| `scopeAtivos` | `scope` prefixo + `Ativos` → `ativos()` | `scopeativos` → `ativos()` não existe |
+| `Builder $query` | Query que Laravel injeta | Sem typehint, ainda funciona mas sem autocomplete |
+| `return $query->where(...)` | Encadeia | Sem `return`, scope não filtra |
+| `DoAutor($query, int $userId)` | Scope com arg | Chama `Post::doAutor(1)` |
+
+**Uso:**
+
+```php
+Post::ativos()->publicados()->get(); // SELECT * FROM posts WHERE ativo=1 AND publicado_em IS NOT NULL
+Post::ativos()->where('user_id', 1)->get();
+Post::doAutor(5)->ativos()->get(); // com param
+```
+
+> **Global Scope:** `addGlobalScope('ativos', fn($q)=>$q->where('ativo',1))` — filtra sempre (ex: multi-tenant). Remova com `withoutGlobalScope`.
+
+## 8.2 Observers e Eventos (dissecado)
+
+> **Observer = ouvinte que roda lógica quando Model muda (antes/depois de criar, etc).** Mantém `Post::creating` fora do Controller.
 
 ```bash
-php artisan make:observer PostObserver --model=Post
+php artisan make:observer PostObserver --model=Post  # cria app/Observers/PostObserver.php
 ```
 
 ```php
-// PostObserver.php
-public function creating(Post $post) { $post->slug = Str::slug($post->titulo); }
-public function saving(Post $post) { if (empty($post->resumo)) $post->resumo = Str::limit($post->conteudo, 150); }
+// PostObserver.php — dissecado
+public function creating(Post $post): void {
+    // Antes de INSERT: gera slug se vazio
+    if (empty($post->slug)) {
+        $post->slug = Str::slug($post->titulo); // "Meu Post" → "meu-post"
+    }
+}
+public function saving(Post $post): void {
+    // Antes de INSERT ou UPDATE: garante resumo
+    if (empty($post->resumo)) {
+        $post->resumo = Str::limit($post->conteudo, 150);
+    }
+}
+```
 
+**Registro:**
+
+```php
 // AppServiceProvider::boot()
+use App\Models\Post; use App\Observers\PostObserver;
 Post::observe(PostObserver::class);
 ```
 
-| Evento | Quando |
-|--------|--------|
-| `creating`/`created` | Antes/depois de criar |
-| `updating`/`updated` | Atualizar |
-| `deleting`/`deleted` | Apagar |
+| Evento | Quando roda | Uso |
+|--------|-------------|-----|
+| `creating` / `created` | Antes/depois de INSERT | `slug` antes, notificação depois |
+| `updating` / `updated` | Antes/depois de UPDATE | Auditoria |
+| `saving` / `saved` | Antes/depois de INSERT ou UPDATE | Validação comum |
+| `deleting` / `deleted` | Antes/depois de DELETE | Soft delete custom |
+| `retrieved` | Ao buscar | Log |
 
-> Observer = lógica de model fora do controller (slug, auditoria).
+**Sem Observer (no Controller):**
+
+```php
+// ❌ Controller inchado
+$post->slug = Str::slug($request->titulo);
+$post->save();
+// ✅ Observer: Controller só $post->save(), slug vai automático
+```
 
 ---
 
