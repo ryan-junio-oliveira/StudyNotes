@@ -24,6 +24,10 @@
 | 12 | **SSH, LFS e Hooks** | `ed25519` por OS, `git lfs`, `pre-commit` hook | [12-ssh-lfs-hooks.md](./12-ssh-lfs-hooks.md) |
 | 13 | **Projeto Portfolio (lab)** | Passo a passo que amarra caps. 03–09 no `/tmp/portfolio` | [13-projeto-portfolio.md](./13-projeto-portfolio.md) |
 | 14 | **Boas Práticas** | Workflow diário, referência rápida `status`/`log`/`diff` | [14-boas-praticas.md](./14-boas-praticas.md) |
+| 15 | **Worktree, Submodules e Sparse** | `worktree`, `sparse-checkout`, `submodule` vs `subtree` | [15-worktree-submodule.md](./15-worktree-submodule.md) |
+| 16 | **Patches e Bundle** | `format-patch`/`apply`/`am`, `bundle`, `archive` offline | [16-patches-bundle.md](./16-patches-bundle.md) |
+| 17 | **Forense e Manutenção** | `blame`, `log -S/-G`, `shortlog`, `filter-repo`/`BFG`, `gc`, `rerere`, `GPG` | [17-manutencao-forense.md](./17-manutencao-forense.md) |
+| 18 | **GitHub Avançado** | GitFlow vs trunk-based, `CODEOWNERS`, `gh` CLI, Actions, credenciais | [18-github-avancado.md](./18-github-avancado.md) |
 
 ### 📦 Projeto
 
@@ -45,7 +49,9 @@
    ↓
 09 Tags → 10 Convenções → 11 GitHub Flow → 12 SSH/LFS/Hooks
    ↓
-13 Lab Portfolio (amarra tudo) → 14 Boas Práticas
+13 Lab Portfolio (amarra tudo) → 14 Boas Práticas → 15 Worktree/Submodule
+   ↓
+16 Patches/Bundle → 17 Forense/Manutenção/GPG → 18 GitHub Avançado
 ```
 
 Comece por [01. Introdução](./01-introducao.md) →
