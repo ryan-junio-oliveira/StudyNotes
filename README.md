@@ -17,13 +17,14 @@
 - [Setup Script](./learning-docker/setup.sh)
 
 ### [🗄️ SQL](./learning-sql/)
-- [SQL do Básico ao Avançado](./learning-sql/README.md)
+- [SQL do Básico ao Avançado](./learning-sql/README.md) — 25 capítulos + projeto Catálogo de Filmes
+- [Projeto Executável — `projeto-catalogo-filmes.sql`](./learning-sql/projeto-catalogo-filmes.sql)
 
 ### [🪟 Windows Commands](./learning-windows/)
 - [Comandos Essenciais do Windows](./learning-windows/README.md)
 
 ### [🔀 Git](./learning-git/)
-- [Git Guide](./learning-git/readme.md)
+- [Git Guide](./learning-git/README.md)
 
 ---
 
