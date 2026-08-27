@@ -5,22 +5,33 @@ services:
     build: 
       context: .
       dockerfile: ./Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.2-fpm}
+        APP_DIR: ${APP_DIR:-/var/www}
     networks:
       - DokSolutionsNetwork
     volumes:
       - ./applications:/var/www
       - ./docker/nginx/sites:/etc/nginx/sites-available
     ports:
-      - "80:80"
-      - "443:443"
+      - "${WEB_HTTP_PORT:-80}:80"
+      - "${WEB_HTTPS_PORT:-443}:443"
       - "8331:8331"
       - "8020:8020"
       - "8091:8091"
       - "2000:2000"
       - "2001:2001"
     depends_on:
-      - mysql
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || nginx -t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # aplicação MySQL
   mysql:
@@ -31,13 +42,19 @@ services:
     volumes:
       - DOK_SOLUTIONS:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: Admini20m07p
-      MYSQL_DATABASE: dbdkwgddcmnt0
-      MYSQL_PASSWORD: Admini20m07p
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - DokSolutionsNetwork
     ports:
-      - "30000:3306"
+      - "${MYSQL_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # phpMyAdmin conectado ao MySQL
   phpmyadmin:
@@ -45,14 +62,15 @@ services:
     image: phpmyadmin/phpmyadmin:latest
     restart: always
     ports:
-      - "8080:80"
+      - "${PMA_PORT:-8080}:80"
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      PMA_USER: root
-      PMA_PASSWORD: Admini20m07p
+      PMA_USER: ${PMA_USER:-root}
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - DokSolutionsNetwork
 
@@ -62,19 +80,24 @@ services:
     image: rabbitmq:3.13-management
     restart: always
     ports:
-      - "5672:5672"     # Porta para aplicações (AMQP)
-      - "15672:15672"   # Painel de administração
+      - "${RABBITMQ_AMQP_PORT:-5672}:5672"     # Porta para aplicações (AMQP)
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"   # Painel de administração
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
     networks:
       - DokSolutionsNetwork
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 networks:
   DokSolutionsNetwork:
+    name: DokSolutionsNetwork
 
 volumes:
   DOK_SOLUTIONS:
-    driver: local
-  n8n_data:
     driver: local
