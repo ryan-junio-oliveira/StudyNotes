@@ -1,352 +1,51 @@
-# 📚 Tutorial Completo de Git — Principais Comandos
+# Curso Completo de Git — Do Zero ao Avançado
 
-Git é um sistema de controle de versão distribuído, usado para acompanhar alterações no código e colaborar em projetos.
+> **Projeto fio-condutor: Portfolio estático em `projeto-portfolio/`**. Cada capítulo adiciona commits, branches e PRs no mesmo repo — como aprenderia em um time real.
 
----
-
-## 1️⃣ Configuração inicial
-
-Configure seu nome e email (apenas uma vez por máquina):
-
-``` bash
-git config --global user.name "Seu Nome"
-git config --global user.email "seu-email@example.com"
-```
-
-Ver configurações:
-
-``` bash
-git config --list
-```
+**Como usar:** leia em ordem, execute no `/tmp/portfolio` copiado de `projeto-portfolio/`. Todo exemplo assume MySQL não, só Git + GitHub.
 
 ---
 
-## 2️⃣ Criar ou clonar repositório
+## 📚 Sumário do Curso
 
-**Novo repositório local:**
+| # | Capítulo | Conteúdo | Arquivo |
+|---|----------|----------|---------|
+| 01 | **Introdução** | Distribuído vs centralizado, snapshots, 3 estados, `.git/` e branch como ponteiro | [01-introducao.md](./01-introducao.md) |
+| 02 | **Configuração, init, clone, .gitignore** | `config` scopes, `init`/`clone`, `.gitignore` + `check-ignore` | [02-configuracao.md](./02-configuracao.md) |
+| 03 | **Staging, commit e histórico** | Ciclo `add`/`commit`, `status`/`diff`/`log`/`show`, `rm --cached` | [03-staging-commit.md](./03-staging-commit.md) |
+| 04 | **Branches** | Ponteiros, `HEAD`, `switch`/`checkout`, fast-forward vs 3-way, grafo | [04-branches.md](./04-branches.md) |
+| 05 | **Remotos** | `origin`, `push`/`fetch`/`pull`, `upstream`, `--force-with-lease` | [05-remotos.md](./05-remotos.md) |
+| 06 | **Conflitos** | Marcadores `<<<<<<<`, `git add` após resolver, `merge --abort` | [06-conflitos.md](./06-conflitos.md) |
+| 07 | **Desfazer** | `reset` soft/mixed/hard, `restore`, `revert`, `reflog`, `amend` | [07-desfazer.md](./07-desfazer.md) |
+| 08 | **Rebase, Stash, Cherry-pick** | `rebase` vs `merge`, `stash` gaveta, `cherry-pick`, `bisect` | [08-rebase-stash.md](./08-rebase-stash.md) |
+| 09 | **Tags** | Leve vs anotada, SemVer, `push --tags` | [09-tags.md](./09-tags.md) |
+| 10 | **Convenções** | Conventional Commits, aliases, `clean` | [10-convencoes.md](./10-convencoes.md) |
+| 11 | **GitHub Flow** | `feature → PR → squash merge`, fork, branch protection | [11-github-flow.md](./11-github-flow.md) |
+| 12 | **SSH, LFS e Hooks** | `ed25519` por OS, `git lfs`, `pre-commit` hook | [12-ssh-lfs-hooks.md](./12-ssh-lfs-hooks.md) |
+| 13 | **Projeto Portfolio (lab)** | Passo a passo que amarra caps. 03–09 no `/tmp/portfolio` | [13-projeto-portfolio.md](./13-projeto-portfolio.md) |
+| 14 | **Boas Práticas** | Workflow diário, referência rápida `status`/`log`/`diff` | [14-boas-praticas.md](./14-boas-praticas.md) |
 
-``` bash
-git init
-```
+### 📦 Projeto
 
-**Clonar repositório existente:**
-
-``` bash
-git clone git@github.com:usuario/repositorio.git
-```
-
-Ou via HTTPS:
-
-``` bash
-git clone https://github.com/usuario/repositorio.git
-```
-
----
-
-## 3️⃣ Estado e histórico
-
-Ver estado dos arquivos:
-
-``` bash
-git status
-```
-
-Ver histórico de commits:
-
-``` bash
-git log
-```
-
-Resumo compacto:
-
-``` bash
-git log --oneline --graph --decorate --all
-```
+| Arquivo | Descrição |
+|---------|-----------|
+| [`projeto-portfolio/index.html`](./projeto-portfolio/index.html) | HTML base do lab |
+| [`projeto-portfolio/style.css`](./projeto-portfolio/style.css) | CSS base do lab |
 
 ---
 
-## 4️⃣ Adicionar e confirmar alterações
+## 🗺️ Trilha
 
-Adicionar arquivos específicos:
-
-``` bash
-git add arquivo.txt
+```
+01 Introdução (3 estados, .git)
+   ↓
+02 Config → 03 Staging/commit → 04 Branches → 05 Remotos
+   ↓
+06 Conflitos → 07 Desfazer → 08 Rebase/Stash
+   ↓
+09 Tags → 10 Convenções → 11 GitHub Flow → 12 SSH/LFS/Hooks
+   ↓
+13 Lab Portfolio (amarra tudo) → 14 Boas Práticas
 ```
 
-Adicionar tudo:
-
-``` bash
-git add .
-```
-
-Criar commit:
-
-``` bash
-git commit -m "Mensagem do commit"
-```
-
----
-
-## 5️⃣ Trabalhando com branches
-
-Criar nova branch:
-
-``` bash
-git branch nome-da-branch
-```
-
-Trocar de branch:
-
-``` bash
-git checkout nome-da-branch
-```
-
-Criar e trocar ao mesmo tempo:
-
-``` bash
-git checkout -b nome-da-branch
-```
-
-Listar branches:
-
-``` bash
-git branch
-```
-
----
-
-## 6️⃣ Enviar e atualizar código
-
-Enviar branch para o repositório remoto:
-
-``` bash
-git push origin nome-da-branch
-```
-
-Atualizar branch local com mudanças do remoto:
-
-``` bash
-git pull origin nome-da-branch
-```
-
----
-
-## 7️⃣ Mesclar alterações
-
-Mesclar outra branch na atual:
-
-``` bash
-git merge nome-da-branch
-```
-
-Resolver conflitos, depois:
-
-``` bash
-git add .
-git commit
-```
-
----
-
-## 8️⃣ Tags (versões)
-
-Criar tag simples:
-
-``` bash
-git tag v1.0.0
-```
-
-Criar tag anotada (com descrição):
-
-``` bash
-git tag -a v1.0.0 -m "Versão estável 1.0.0"
-```
-
-Enviar tag para o remoto:
-
-``` bash
-git push origin v1.0.0
-```
-
-Enviar todas as tags para o remoto:
-
-``` bash
-git push origin --tags
-```
-
-Excluir tag local:
-
-``` bash
-git tag -d v1.0.0
-```
-
-Excluir tag remota:
-
-``` bash
-git push --delete origin v1.0.0
-```
-
----
-
-## 9️⃣ Desfazer alterações
-
-Remover arquivos do staging:
-
-``` bash
-git reset arquivo.txt
-```
-
-Reverter commit mantendo alterações:
-
-``` bash
-git reset --soft HEAD~1
-```
-
-Reverter commit descartando alterações:
-
-``` bash
-git reset --hard HEAD~1
-```
-
-Reverter commit sem alterar histórico:
-
-``` bash
-git revert <hash-do-commit>
-```
-
----
-
-## 🔟 Limpeza de arquivos
-
-Remover arquivo do Git mas manter local:
-
-``` bash
-git rm --cached arquivo.txt
-```
-
-Ignorar arquivos:
-
-``` bash
-echo "arquivo.log" >> .gitignore
-```
-
----
-
-## 1️⃣1️⃣ Git LFS (arquivos grandes)
-
-Instalar e configurar:
-
-``` bash
-git lfs install
-git lfs track "*.exe"
-git add .gitattributes
-```
-
-Adicionar e enviar:
-
-``` bash
-git add arquivo.exe
-git commit -m "Adiciona arquivo grande"
-git push origin branch
-```
-
----
-
-## 1️⃣2️⃣ Comandos úteis
-
-Ver diferenças:
-
-``` bash
-git diff
-```
-
-Sincronizar branch local com o remoto:
-
-``` bash
-git fetch origin
-git merge origin/main
-```
-
-Remover branch local:
-
-``` bash
-git branch -d nome-da-branch
-```
-
-Remover branch remota:
-
-``` bash
-git push origin --delete nome-da-branch
-```
-
----
-
-## 1️⃣3️⃣ Gerar chave SSH e adicionar ao GitHub
-
-### 🔐 Passo 1: Gerar uma chave SSH
-
-``` bash
-ssh-keygen -t ed25519 -C "seu-email@example.com"
-```
-
-Caso não seja suportado:
-
-``` bash
-ssh-keygen -t rsa -b 4096 -C "seu-email@example.com"
-```
-
-Pressione **Enter** para aceitar o local padrão e defina senha se quiser.
-
----
-
-### 🔑 Passo 2: Iniciar o agente SSH e adicionar a chave
-
-``` bash
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_ed25519
-```
-
----
-
-### 📋 Passo 3: Copiar a chave pública
-
-``` bash
-cat ~/.ssh/id_ed25519.pub
-```
-
-No Windows (Git Bash):
-
-``` bash
-clip < ~/.ssh/id_ed25519.pub
-```
-
----
-
-### 🌐 Passo 4: Adicionar a chave no GitHub
-
-1. GitHub → **Settings**
-2. **SSH and GPG keys**
-3. **New SSH key**
-4. Cole a chave pública e salve
-
----
-
-### ✅ Passo 5: Testar a conexão
-
-``` bash
-ssh -T git@github.com
-```
-
----
-
-### 🔄 Passo 6: Usar SSH nos repositórios
-
-``` bash
-git clone git@github.com:usuario/repositorio.git
-git remote set-url origin git@github.com:usuario/repositorio.git
-```
-
----
-
-📌 **Dica final:** use sempre `git status` para saber onde você está e `git log --oneline --graph` para entender o histórico.
-
+Comece por [01. Introdução](./01-introducao.md) →
