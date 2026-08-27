@@ -1,0 +1,28 @@
+# Env / secrets
+.env
+learning-docker/.env
+*.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker
+learning-docker/applications/vendor/
+learning-docker/applications/node_modules/
+
+# Temp
+*.tmp
+*.bak
