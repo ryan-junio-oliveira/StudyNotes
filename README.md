@@ -7,13 +7,10 @@
 ## 📖 Topics
 
 ### [🐘 Laravel](./learning-laravel/)
-- [Laravel — Do Zero ao Eloquent Avançado (13 capítulos + projeto Blog)](./learning-laravel/README.md)
+- [Laravel — Do Zero ao Framework Avançado (22 capítulos + projeto Blog)](./learning-laravel/README.md)
 
 ### [🐳 Docker](./learning-docker/)
-- [Docker Manual](./learning-docker/README.md)
-- [Dockerfile](./learning-docker/Dockerfile)
-- [docker-compose.yml](./learning-docker/docker-compose.yml)
-- [Setup Script](./learning-docker/setup.sh)
+- [Docker — Do Zero ao Stack PHP (10 capítulos + app-php lab)](./learning-docker/README.md)
 
 ### [🗄️ SQL](./learning-sql/)
 - [SQL — Do Básico ao Avançado (21 capítulos + projeto Catálogo de Filmes)](./learning-sql/README.md)
