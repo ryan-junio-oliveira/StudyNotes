@@ -1,6 +1,6 @@
-# Curso Completo de Laravel — Do Zero ao Eloquent Avançado
+# Curso Completo de Laravel — Do Zero ao Framework Avançado
 
-> **Projeto fio-condutor: Blog** (`users` → `posts` → `tags`/`comments`). Cada capítulo usa o mesmo ER — de `migrate` até `SoftDeletes`.
+> **Projeto fio-condutor: Blog** (`users` → `posts` → `tags`/`comments`). De `migrate` até `deploy` + filas e testes.
 
 ---
 
@@ -21,6 +21,15 @@
 | 11 | **Collections e Avançados** | Custom `Collection`, `withDefault`, `replicate`, `touches`, `firstOrCreate` | [11-collections-resources.md](./11-collections-resources.md) |
 | 12 | **Boas Práticas** | `constrained()`+`with()`, triggers raw, `schema:dump` | [12-boas-praticas.md](./12-boas-praticas.md) |
 | 13 | **Projeto Blog (lab)** | `laravel new blog` passo a passo amarrando caps. 03-10 | [13-projeto-blog-lab.md](./13-projeto-blog-lab.md) |
+| 14 | **Rotas e Controllers** | `Route::resource`, 7 métodos, implicit binding | [14-rotas-controllers.md](./14-rotas-controllers.md) |
+| 15 | **Blade** | `@extends`/`@section`/`@foreach`, componentes `x-alert` | [15-blade-views.md](./15-blade-views.md) |
+| 16 | **Validação** | `validate()` + `FormRequest`, regras `unique`/`exists` | [16-validacao.md](./16-validacao.md) |
+| 17 | **Autenticação** | Breeze, `auth`/`guest` middleware, `Auth::check()` | [17-autenticacao.md](./17-autenticacao.md) |
+| 18 | **Autorização** | `Gate` vs `Policy`, `@can`, `403` | [18-autorizacao.md](./18-autorizacao.md) |
+| 19 | **Middleware e Providers** | `make:middleware`, `Kernel.php`, `ServiceProvider` | [19-middleware-providers.md](./19-middleware-providers.md) |
+| 20 | **API Resources e Paginação** | `JsonResource`, `paginate` vs `cursorPaginate` | [20-api-resources.md](./20-api-resources.md) |
+| 21 | **Filas e Eventos** | `ShouldQueue`, `queue:work`, `Event`/`Listener` | [21-queues-events.md](./21-queues-events.md) |
+| 22 | **Testes e Deploy** | Pest/PHPUnit, `config:cache`, `optimize` | [22-testes-deploy.md](./22-testes-deploy.md) |
 
 ### 📦 Projeto
 
@@ -41,6 +50,10 @@
 06 Relacionamentos → 07 Accessors/Casts → 08 Scopes/Observers
    ↓
 09 Mass Assignment → 10 Soft Deletes → 11 Collections → 12 Boas Práticas → 13 Lab
+   ↓
+14 Rotas/Controllers → 15 Blade → 16 Validação → 17 Auth → 18 Gates/Policies
+   ↓
+19 Middleware/Providers → 20 API Resources → 21 Queues/Events → 22 Testes/Deploy
 ```
 
 Comece por [01. Introdução](./01-introducao.md) →
